@@ -57,9 +57,6 @@ plugs:
   alsa:
   pulseaudio:
 
-  # V4L device access
-  camera: # Non-A-C
-
   # Common desktop interfaces
   # https://forum.snapcraft.io/t/the-desktop-interfaces/2042
   desktop:
