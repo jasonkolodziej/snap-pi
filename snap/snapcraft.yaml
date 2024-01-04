@@ -38,40 +38,67 @@ confinement: devmode
 # grade: stable | devel
 
 # Parts
+## are the raw building blocks of a snap, used to collect and build binaries and their dependencies.
 ## Parts define what sources are needed to assemble your app. 
 ## Parts can be anything: programs, libraries, or other needed assets.
 parts:
   ## The parts arbitrary name
-  sharestream:
+  spotifyd:
   ## The plugin field=(dump) determines how the information in specified in the source field and includes the source's contents in the snap. The source can be a local or remote zip file, deb file, or tarball.
-    plugin: <type>
-    source-type: tar
-    source: <source>
+    plugin: rust
+    ## (list of strings) Features used to build optional dependencies
+    rust-features:
+      - pulseaudio_backend
+      - dbus_keyring
+      - dbus_mpris
+    source-type: git
+    source: https://github.com/Spotifyd/spotifyd.git
     ## Before building the part, the packages listed in the build-packages section need to be installed in the build environment. These are the tools and libraries that are used during the build process.
     build-packages:
-      - pkg1
+      - build-essential
+      - libasound2-dev
+      - pkg-config
+      - libpulse-dev
+      - libssl-dev
+      - libdbus-1-dev
     ##  These are packages containing libraries are resources that DOSBox needs to run. They are very similar to those that would be listed as run-time dependencies on a standard distribution package.
-    stage-packages:
-      - staged-pkg1
+    # stage-packages:
+    #   - staged-pkg1
     ## You can override and customise steps of a part’s lifecycle (pull, build, stage, and prime) using overrides;
     ## ref: https://snapcraft.io/docs/overrides
     # override-<step name>: |
     #   <multi-line>
     #   <shell script>
+  
+  # shairplay-sync:
+  # ## The plugin field=(dump) determines how the information in specified in the source field and includes the source's contents in the snap. The source can be a local or remote zip file, deb file, or tarball.
+  #   plugin: <type>
+  #   source-type: tar
+  #   source: <source>
+  #   ## Before building the part, the packages listed in the build-packages section need to be installed in the build environment. These are the tools and libraries that are used during the build process.
+  #   build-packages:
+  #     - pkg1
+  #   ##  These are packages containing libraries are resources that DOSBox needs to run. They are very similar to those that would be listed as run-time dependencies on a standard distribution package.
+  #   stage-packages:
+  #     - staged-pkg1
+  #   ## You can override and customise steps of a part’s lifecycle (pull, build, stage, and prime) using overrides;
+  #   ## ref: https://snapcraft.io/docs/overrides
+  #   # override-<step name>: |
+  #   #   <multi-line>
+  #   #   <shell script>
+
 ## ref: https://snapcraft.io/docs/snapcraft-app-and-service-metadata
 apps:
   ## ref: https://snapcraft.io/docs/services-and-daemons
   # some-daemon:
   #   command: bin/os-release.sh
   #   daemon: simple
-  guvcview:
-    adapter: full
+  spotifyd:
+    # adapter: full
     # WORKAROUND: Snapcraft impose too much restrictions to the command format
     # https://bugs.launchpad.net/snapcraft/+bug/1820055
-    command: bin/guvcview-launch
-    command-chain:
-    - bin/desktop-launch
-    desktop: usr/share/applications/guvcview.desktop
+    command: bin/spotifyd
+    daemon: simple
     environment:
       # Fix ALSA
       ALSA_CONFIG_PATH: /snap/$SNAPCRAFT_PROJECT_NAME/current/usr/share/alsa/alsa.conf
@@ -80,43 +107,6 @@ apps:
       audio-playback:
       alsa:
       pulseaudio:
-      ## Common desktop interfaces
-      ## https://forum.snapcraft.io/t/the-desktop-interfaces/2042
-      desktop:
-      desktop-legacy:
-      unity7:
-      wayland:
-      ## GNOME and Gtk runtime via content sharing
-      gnome-3-28-1804:
-        interface: content
-        target: $SNAP/gnome-platform
-        default-provider: gnome-3-28-1804
-    
-      # Gtk Common Themes support
-      # https://forum.snapcraft.io/t/how-to-use-the-system-gtk-theme-via-the-gtk-common-themes-snap/6235
-      gsettings:
-      gtk-3-themes:
-        interface: content
-        target: $SNAP/data-dir/themes
-        default-provider: gtk-common-themes
-      icon-themes:
-        interface: content
-        target: $SNAP/data-dir/icons
-        default-provider: gtk-common-themes
-      sound-themes:
-        interface: content
-        target: $SNAP/data-dir/sounds
-        default-provider: gtk-common-themes
-    
-      # Unknown, related with H264 panel
-      hardware-observe:
-    
-      # Storage access
-      home:
-      removable-media: # Non-A-C
-    
-      # For SDL2 hardware acceleration
-      opengl:
     
       # Canonical config path access
       # https://forum.snapcraft.io/t/the-personal-files-interface/9357
