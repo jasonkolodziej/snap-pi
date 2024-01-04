@@ -16,6 +16,14 @@ description: |
 ## They’re transparent to users, but they need to be considered, and specified, when building a snap.
 base: core20
 
+## builds a snap to run on the same architecture as the build environment.
+## ref: https://snapcraft.io/docs/architectures
+architecturres:
+  - build-on: arm64
+#    build-for: 
+  - build-on: armhf
+#    run-on:  
+  
 # Security Model
 
 ## Because devmode is only intended for development, 
