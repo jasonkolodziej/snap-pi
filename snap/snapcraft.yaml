@@ -112,8 +112,74 @@ parts:
       - libgcrypt-dev
       - xxd
   #   ##  These are packages containing libraries are resources that DOSBox needs to run. They are very similar to those that would be listed as run-time dependencies on a standard distribution package.
-  #   stage-packages:
-  #     - staged-pkg1
+    stage-packages:
+      - libaom0
+      - libasound2
+      - libavahi-client3
+      - libavahi-common3
+      - libavcodec58
+      - libavutil56
+      - libcairo-gobject2
+      - libcairo2
+      - libcodec2-0.9
+      - libconfig9
+      - libdatrie1
+      - libdrm2
+      - libfontconfig1
+      - libfreetype6
+      - libfribidi0
+      - libgdk-pixbuf2.0-0
+      - libgomp1
+      - libgraphite2-3
+      - libgsm1
+      - libharfbuzz0b
+      - libicu66
+      - libmp3lame0
+      - libnuma1
+      - libogg0
+      - libopenjp2-7
+      - libopus0
+      - libpango-1.0-0
+      - libpangocairo-1.0-0
+      - libpangoft2-1.0-0
+      - libpixman-1-0
+      - libplist3
+      - libpng16-16
+      - librsvg2-2
+      - libshine3
+      - libsnappy1v5
+      - libsodium23
+      - libsoxr0
+      - libspeex1
+      - libswresample3
+      - libthai0
+      - libtheora0
+      - libtwolame0
+      - libva-drm2
+      - libva-x11-2
+      - libva2
+      - libvdpau1
+      - libvorbis0a
+      - libvorbisenc2
+      - libvpx6
+      - libwavpack1
+      - libwebp6
+      - libwebpmux3
+      - libx11-6
+      - libx264-155
+      - libx265-179
+      - libxau6
+      - libxcb-render0
+      - libxcb-shm0
+      - libxcb1
+      - libxdmcp6
+      - libxext6
+      - libxfixes3
+      - libxml2
+      - libxrender1
+      - libxvidcore4
+      - libzvbi0
+      - ocl-icd-libopencl1
   #   ## You can override and customise steps of a part’s lifecycle (pull, build, stage, and prime) using overrides;
   #   ## ref: https://snapcraft.io/docs/overrides
   #   # override-<step name>: |
