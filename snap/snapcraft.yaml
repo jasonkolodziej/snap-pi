@@ -84,13 +84,13 @@ parts:
   # ## The plugin field=(dump) determines how the information in specified in the source field and includes the source's contents in the snap. The source can be a local or remote zip file, deb file, or tarball.
     plugin: autotools
     autotools-configure-parameters:
-      - sysconfdir=/etc
-      - with-alsa
-      - with-soxr
-      - with-avahi 
-      - with-ssl=openssl 
-      - with-systemd 
-      - with-airplay-2
+      - --sysconfdir=/etc
+      - --with-alsa
+      - --with-soxr
+      - --with-avahi 
+      - --with-ssl=openssl 
+      - --with-systemd 
+      - --with-airplay-2
     source-type: git
     source: https://github.com/mikebrady/shairport-sync.git
   #   ## Before building the part, the packages listed in the build-packages section need to be installed in the build environment. These are the tools and libraries that are used during the build process.
