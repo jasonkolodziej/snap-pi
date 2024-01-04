@@ -79,10 +79,18 @@ parts:
     # override-<step name>: |
     #   <multi-line>
     #   <shell script>
-  
+  nqptp:
+    plugin: autotools
+    autotools-configure-parameters:
+      - --with-systemd-startup
+    source-type: git
+    source: https://github.com/mikebrady/nqptp.git
+    # build-packages:
+      # - 
   shairplay-sync:
   # ## The plugin field=(dump) determines how the information in specified in the source field and includes the source's contents in the snap. The source can be a local or remote zip file, deb file, or tarball.
     plugin: autotools
+    after: [nqptp]
     autotools-configure-parameters:
       - --sysconfdir=/etc
       - --with-alsa
@@ -206,6 +214,14 @@ apps:
       - audio-playback
       - alsa
       - pulseaudio
+  shairplay-sync:
+    daemon: simple
+    plugs:
+      - firewall-control
+      - dbus
+      - pulseaudio
+      - alsa
+      - audio-playback
     
       # Canonical config path access
       # https://forum.snapcraft.io/t/the-personal-files-interface/9357
