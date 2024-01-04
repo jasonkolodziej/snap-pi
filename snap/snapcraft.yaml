@@ -52,6 +52,10 @@ parts:
     #   <shell script>
 
 apps:
+  ## ref: https://snapcraft.io/docs/services-and-daemons
+  # some-daemon:
+  #   command: bin/os-release.sh
+  #   daemon: simple
   guvcview:
     adapter: full
     # WORKAROUND: Snapcraft impose too much restrictions to the command format
