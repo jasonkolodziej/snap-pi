@@ -1,7 +1,7 @@
 # Global Metadata
 # The name must be unique in the Snap Store. Valid snap names consist of lower-case alphanumeric characters and hyphens. They cannot be all numbers and they also cannot start or end with a hyphen.
 name: sharestream
-version: "0.74-svn"
+version: "0.75-svn"
 # The summary can not exceed 79 characters. You can use a chevron ‘>’ in the description key to declare a multi-line description.
 summary: DOS emulator
 description: |
@@ -80,14 +80,37 @@ parts:
     #   <multi-line>
     #   <shell script>
   
-  # shairplay-sync:
+  shairplay-sync:
   # ## The plugin field=(dump) determines how the information in specified in the source field and includes the source's contents in the snap. The source can be a local or remote zip file, deb file, or tarball.
-  #   plugin: <type>
-  #   source-type: tar
-  #   source: <source>
+    plugin: autotools
+    autotools-configure-parameters:
+      - sysconfdir=/etc
+      - with-alsa
+      - with-soxr
+      - with-avahi 
+      - with-ssl=openssl 
+      - with-systemd 
+      - with-airplay-2
+    source-type: git
+    source: https://github.com/mikebrady/shairport-sync.git
   #   ## Before building the part, the packages listed in the build-packages section need to be installed in the build environment. These are the tools and libraries that are used during the build process.
-  #   build-packages:
-  #     - pkg1
+    build-packages:
+     # - build-essential git autoconf automake libtool \
+      - libpopt-dev 
+      - libconfig-dev 
+      - libasound2-dev 
+      - avahi-daemon 
+      - libavahi-client-dev 
+      - libssl-dev 
+      - libsoxr-dev
+      - libplist-dev
+      - libsodium-dev
+      - libavutil-dev 
+      - libavcodec-dev 
+      - libavformat-dev 
+      - uuid-dev 
+      - libgcrypt-dev
+      - xxd
   #   ##  These are packages containing libraries are resources that DOSBox needs to run. They are very similar to those that would be listed as run-time dependencies on a standard distribution package.
   #   stage-packages:
   #     - staged-pkg1
