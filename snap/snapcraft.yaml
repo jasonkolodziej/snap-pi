@@ -87,7 +87,7 @@ parts:
     source: https://github.com/mikebrady/nqptp.git
     # build-packages:
       # - 
-  shairplay-sync:
+  shairport-sync:
   # ## The plugin field=(dump) determines how the information in specified in the source field and includes the source's contents in the snap. The source can be a local or remote zip file, deb file, or tarball.
     plugin: autotools
     after: [nqptp]
@@ -214,8 +214,9 @@ apps:
       - audio-playback
       - alsa
       - pulseaudio
-  shairplay-sync:
+  shairport-sync:
     daemon: simple
+    command: bin/shairport-sync
     plugs:
       - firewall-control
       - dbus
