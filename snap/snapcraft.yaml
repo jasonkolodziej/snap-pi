@@ -1,4 +1,4 @@
-# Metadata
+# Global Metadata
 # The name must be unique in the Snap Store. Valid snap names consist of lower-case alphanumeric characters and hyphens. They cannot be all numbers and they also cannot start or end with a hyphen.
 name: sharestream
 version: "0.74-svn"
@@ -17,26 +17,39 @@ description: |
 base: core20
 
 # Security Model
+
 ## Because devmode is only intended for development, 
 ## snaps must be set to strict confinement before they can be published as “stable” in the Snap Store. 
 ## Once an app is working well in devmode, you can review confinement violations, add appropriate interfaces, and switch to strict confinement.
 confinement: devmode
+## Defines the quality grade of the snap.
+## Can be either devel (i.e. a development version of the snap, 
+## so not to be published to the stable or candidate channels) or 
+## stable (i.e. a stable release or release candidate, which can be released to all channels).
+## A snap of type app (default) cannot be set to stable if the base is not on a stable channel.
+# grade: stable | devel
 
 # Parts
 ## Parts define what sources are needed to assemble your app. 
 ## Parts can be anything: programs, libraries, or other needed assets.
 parts:
+  ## The parts arbitrary name
   sharestream:
-  # The plugin field=(dump) determines how the information in specified in the source field and includes the source's contents in the snap. The source can be a local or remote zip file, deb file, or tarball.
+  ## The plugin field=(dump) determines how the information in specified in the source field and includes the source's contents in the snap. The source can be a local or remote zip file, deb file, or tarball.
     plugin: <type>
     source-type: tar
     source: <source>
-    # Before building the part, the packages listed in the build-packages section need to be installed in the build environment. These are the tools and libraries that are used during the build process.
+    ## Before building the part, the packages listed in the build-packages section need to be installed in the build environment. These are the tools and libraries that are used during the build process.
     build-packages:
       - pkg1
-    #  These are packages containing libraries are resources that DOSBox needs to run. They are very similar to those that would be listed as run-time dependencies on a standard distribution package.
+    ##  These are packages containing libraries are resources that DOSBox needs to run. They are very similar to those that would be listed as run-time dependencies on a standard distribution package.
     stage-packages:
       - staged-pkg1
+    ## You can override and customise steps of a part’s lifecycle (pull, build, stage, and prime) using overrides;
+    ## ref: https://snapcraft.io/docs/overrides
+    # override-<step name>: |
+    #   <multi-line>
+    #   <shell script>
 
 apps:
   guvcview:
@@ -50,60 +63,57 @@ apps:
     environment:
       # Fix ALSA
       ALSA_CONFIG_PATH: /snap/$SNAPCRAFT_PROJECT_NAME/current/usr/share/alsa/alsa.conf
-
-      
-plugs:
-  # Audio access
-  alsa:
-  pulseaudio:
-
-  # Common desktop interfaces
-  # https://forum.snapcraft.io/t/the-desktop-interfaces/2042
-  desktop:
-  desktop-legacy:
-  unity7:
-  wayland:
-
-  # GNOME and Gtk runtime via content sharing
-  gnome-3-28-1804:
-    interface: content
-    target: $SNAP/gnome-platform
-    default-provider: gnome-3-28-1804
-
-  # Gtk Common Themes support
-  # https://forum.snapcraft.io/t/how-to-use-the-system-gtk-theme-via-the-gtk-common-themes-snap/6235
-  gsettings:
-  gtk-3-themes:
-    interface: content
-    target: $SNAP/data-dir/themes
-    default-provider: gtk-common-themes
-  icon-themes:
-    interface: content
-    target: $SNAP/data-dir/icons
-    default-provider: gtk-common-themes
-  sound-themes:
-    interface: content
-    target: $SNAP/data-dir/sounds
-    default-provider: gtk-common-themes
-
-  # Unknown, related with H264 panel
-  hardware-observe:
-
-  # Storage access
-  home:
-  removable-media: # Non-A-C
-
-  # For SDL2 hardware acceleration
-  opengl:
-
-  # Canonical config path access
-  # https://forum.snapcraft.io/t/the-personal-files-interface/9357
-  # FIXME: Waiting for autoconnection grant on the store
-  # https://forum.snapcraft.io/t/interface-auto-connect-request-for-the-guvcview-snap-personal-files/10858
-  #user-guvcview-config:
-    #interface: personal-files
-    #write:
-    #- $HOME/.config/guvcview2
-
-  # Recommendations from snappy-debug
-  screen-inhibit-control:
+    plugs:
+      ## Audio access
+      audio-playback:
+      alsa:
+      pulseaudio:
+      ## Common desktop interfaces
+      ## https://forum.snapcraft.io/t/the-desktop-interfaces/2042
+      desktop:
+      desktop-legacy:
+      unity7:
+      wayland:
+      ## GNOME and Gtk runtime via content sharing
+      gnome-3-28-1804:
+        interface: content
+        target: $SNAP/gnome-platform
+        default-provider: gnome-3-28-1804
+    
+      # Gtk Common Themes support
+      # https://forum.snapcraft.io/t/how-to-use-the-system-gtk-theme-via-the-gtk-common-themes-snap/6235
+      gsettings:
+      gtk-3-themes:
+        interface: content
+        target: $SNAP/data-dir/themes
+        default-provider: gtk-common-themes
+      icon-themes:
+        interface: content
+        target: $SNAP/data-dir/icons
+        default-provider: gtk-common-themes
+      sound-themes:
+        interface: content
+        target: $SNAP/data-dir/sounds
+        default-provider: gtk-common-themes
+    
+      # Unknown, related with H264 panel
+      hardware-observe:
+    
+      # Storage access
+      home:
+      removable-media: # Non-A-C
+    
+      # For SDL2 hardware acceleration
+      opengl:
+    
+      # Canonical config path access
+      # https://forum.snapcraft.io/t/the-personal-files-interface/9357
+      # FIXME: Waiting for autoconnection grant on the store
+      # https://forum.snapcraft.io/t/interface-auto-connect-request-for-the-guvcview-snap-personal-files/10858
+      #user-guvcview-config:
+        #interface: personal-files
+        #write:
+        #- $HOME/.config/guvcview2
+    
+      # Recommendations from snappy-debug
+      screen-inhibit-control:
