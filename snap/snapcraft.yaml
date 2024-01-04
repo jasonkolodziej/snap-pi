@@ -50,7 +50,7 @@ parts:
     # override-<step name>: |
     #   <multi-line>
     #   <shell script>
-
+## ref: https://snapcraft.io/docs/snapcraft-app-and-service-metadata
 apps:
   ## ref: https://snapcraft.io/docs/services-and-daemons
   # some-daemon:
