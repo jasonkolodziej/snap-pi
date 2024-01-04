@@ -104,9 +104,9 @@ apps:
       ALSA_CONFIG_PATH: /snap/$SNAPCRAFT_PROJECT_NAME/current/usr/share/alsa/alsa.conf
     plugs:
       ## Audio access
-      audio-playback:
-      alsa:
-      pulseaudio:
+      - audio-playback
+      - alsa
+      - pulseaudio
     
       # Canonical config path access
       # https://forum.snapcraft.io/t/the-personal-files-interface/9357
@@ -118,4 +118,4 @@ apps:
         #- $HOME/.config/guvcview2
     
       # Recommendations from snappy-debug
-      screen-inhibit-control:
+      # screen-inhibit-control:
