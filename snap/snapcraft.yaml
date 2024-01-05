@@ -216,13 +216,15 @@ apps:
       - pulseaudio
   shairport-sync:
     daemon: simple
-    command: bin/shairport-sync
+    command: shairport-sync
     plugs:
       - firewall-control
       - dbus
       - pulseaudio
       - alsa
       - audio-playback
+      - avahi-control
+      - avahi-observe
     
       # Canonical config path access
       # https://forum.snapcraft.io/t/the-personal-files-interface/9357
