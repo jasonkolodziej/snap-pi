@@ -216,7 +216,7 @@ apps:
       - pulseaudio
   shairport-sync:
     daemon: simple
-    command: shairport-sync
+    command: /usr/local/bin/shairport-sync
     plugs:
       - firewall-control
       - dbus
