@@ -26,8 +26,7 @@ license: MIT
 architectures:
   #- build-on: arm64
 #    build-for:
-  - build-on: amd64
-    build-for: arm64
+  - build-on: [arm64, armhf, amd64]
 
 # SECURITY MODEL
 ## Because devmode is only intended for development,
