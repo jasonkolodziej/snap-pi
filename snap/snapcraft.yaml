@@ -1,4 +1,5 @@
 # GLOBAL METADATA
+## Reference: https://snapcraft.io/docs/snapcraft-yaml-reference
 ## The name must be unique in the Snap Store.
 ## Valid snap names consist of lower-case alphanumeric characters and hyphens.
 ## They cannot be all numbers and they also cannot start or end with a hyphen.
