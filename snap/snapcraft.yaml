@@ -8,7 +8,7 @@ name: goplay2 # you probably want to 'snapcraft register <name>'
 ## They’re transparent to users, but they need to be considered, and specified, when building a snap.
 base: core22 # the base snap is the execution environment for this snap
 version: '0.1' # just for humans, typically '1.2+git' or '1.3.2'
-summary: Send audio to UPnP/Sonos/Chromecast players using AirPlay # 79 char long summary
+summary: Send audio to device running this snap using AirPlay 2 # 79 char long summary
 description: |
   AirConnect can run on any machine that has access to your local network
   (Windows, MacOS x86 and arm64, Linux x86, x86_64, arm, aarch64, sparc,
@@ -26,7 +26,8 @@ license: MIT
 architectures:
   #- build-on: arm64
 #    build-for:
-  - build-on: [arm64, armhf, amd64]
+  - build-on: amd64
+    build-for: arm64
 
 # SECURITY MODEL
 ## Because devmode is only intended for development,
