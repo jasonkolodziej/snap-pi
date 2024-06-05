@@ -1,34 +1,114 @@
-# This is a basic workflow to help you get started with Actions
+#? This is a basic workflow to help you get started with Actions
 name: CI
-# Controls when the workflow will run
+#? Controls when the workflow will run
 on:
-  # Triggers the workflow on push or pull request events but only for the "main" branch
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+  #? Triggers the workflow on push or pull request events but only for the "main" branch
+  # push:
+  #   branches: ["main"]
+  # pull_request:
+  #   branches: ["main"]
+  #? Listen to a repository dispatch event by the name of `dispatch-event`
+  repository_dispatch:
+    types: [dispatch-released]
 
-  # Allows you to run this workflow manually from the Actions tab
+  #? Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+#? A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
+  #? This workflow contains a single job called "build"
   build:
-    # The type of runner that the job will run on
-    runs-on: ubuntu-latest
-    # Reference: https://github.com/marketplace/actions/snapcraft-multiarch-build
+    #? Reference: https://github.com/marketplace/actions/snapcraft-multiarch-build
     strategy:
       matrix:
-        platform:
-        - arm64
+        os: [ubuntu-latest]
+        platform: [arm64, amd64]
+
+    #? The type of runner that the job will run on
+    runs-on: ${{ matrix.os }}
+
     env:
-      # https://github.com/marketplace/actions/snapcraft-action#log-in
+      #? > https://github.com/marketplace/actions/snapcraft-action#log-in
       SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_TOKEN }}
-    # Steps represent a sequence of tasks that will be executed as part of the job
+      RELEASE_VERSION: ${{ github.event.client_payload.tag }}
+      IS_NEW: ${{ github.event.client_payload.is_new }}
+      EVENT_TYPE: ${{ github.event_name }}
+      MANUAL_EVENT: ${{ github.event.client_payload.manual_dispatch }}
+      CACHED_KEY: ${{ github.event.client_payload.cache_key }}
+      # BUILD_PLATFORM: ${{ github.event.client_payload.build_platform }}
+      # BUILD_OS: ${{github.event.client_payload.build_os }}
+
+    #? Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      #? Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Checkout
         uses: actions/checkout@v3
+
+      # - name: Pull and save docker image as tarball
+      #   run: |
+      #     docker pull owncloud/ocis:5.0.5
+      #     CONT_ID=$(docker create owncloud/ocis:5.0.5)
+
+      #     docker export ${CONT_ID} -o ocis-5_0_5.tar.gz
+      #     # docker save -o ocis-5_0_5.tar owncloud/ocis:5.0.5
+      #     tar tvf ./ocis-5_0_5.tar.gz
+
+      # - uses: actions/download-artifact@v4
+      #   id: cached
+      #   with:
+      #     name: latest-cached-bin
+      #   continue-on-error: true
+
+      - uses: actions/cache@v4
+        #* Try and restore a cached version if possibe
+        id: restore-cached
+        # continue-on-error: true
+        with:
+          path: ocis
+          key: ${{ env.CACHED_KEY }}-${{ matrix.platform }}-${{ hashFiles('ocis') }}
+          fail-on-cache-miss: true
+          restore-keys: ocis-${{ env.RELEASE_VERSION }}-${{ runner.os }}-${{ matrix.platform }}-
+
+      # - name: Grab binary via Cache
+      #   id: grab
+      #   if: ${{ steps.cached.outputs.cache-hit != 'true' }}
+      #   run: |
+      #     echo "latest cached binary doesn't exist, downloading..."
+      #     curl --fail https://download.owncloud.com/ocis/ocis/stable/${{env.RELEASE_TAG}}/ocis-${{env.RELEASE_TAG}}-linux-${{matrix.platform}} --output ocis
+      #     # set file to be executable
+      #     # chmod +x ./ocis
+
+      # #? Refrence: https://github.com/actions/cache/tree/main
+      # - uses: actions/cache/save@v4
+      #   #? https://github.com/actions/runner/blob/main/docs/adrs/0274-step-outcome-and-conclusion.md
+      #   if: ${{ steps.cached.outputs.cache-hit != 'true' && steps.grab.conclusion == 'success' }}
+      #   id: cache
+      #   with:
+      #     path: ocis
+      #     key: ${{ runner.os }}-ocis-${{ hashFiles('ocis') }}
+      - name: Status
+        run: |
+          echo "manual_dispatch:${{ env.MANUAL_EVENT }} event:${{ env.EVENT_TYPE }} is_new:${{ env.IS_NEW }} version:${{ env.RELEASE_VERSION }}"
+          ls -al
+          cp ./ocis ./src/ocis/bin
+
+      # - name: Grab binary
+      #   id: grab
+      #   if: ${{ steps.cached.outcome == 'failure' }}
+      #   run: |
+      #     # echo ${{ steps.cached.outcome }} ${{ steps.cached.conclusion }}
+      #     echo "latest cached binary doesn't exist, downloading..."
+      #     curl --fail https://download.owncloud.com/ocis/ocis/stable/5.0.5/ocis-5.0.5-linux-${{matrix.platform}} --output ocis
+      #     # set file to be executable
+      #     chmod +x ./ocis
+
+      # - name: Uploading artifact
+      #   id: cache
+      #   if: ${{ steps.grab.conclusion == 'success' }}
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: latest-cached-bin
+      #     path: ./ocis
+
       # # Use Samuel's action to get snapcraft
       # - name: Install Snapcraft
       #   uses: samuelmeuli/action-snapcraft@v2
@@ -37,43 +117,58 @@ jobs:
       #   with:
       #     use_lxd: ${{ matrix.os == 'ubuntu-18.04' }}
       - uses: docker/setup-qemu-action@v1
-      # https://github.com/marketplace/actions/snapcraft-multiarch-build#action-inputs
+      #? https://github.com/marketplace/actions/snapcraft-multiarch-build#action-inputs
       - uses: diddlesnaps/snapcraft-multiarch-action@v1
+        # if: ${{ steps.restore-cached.outputs.cache-hit == 'true' }}
         id: snapcraft
         with:
           architecture: ${{ matrix.platform }}
-      - uses: actions/upload-artifact@v3
+
+      - uses: actions/upload-artifact@v4
+        id: uploadSnapArtifact
         with:
-          name: snap
+          name: snap-${{ env.RELEASE_VERSION }}-${{ matrix.platform }}
           path: ${{ steps.snapcraft.outputs.snap }}
-      # Runs a set of commands using the runners shell
+      #? Runs a set of commands using the runners shell
       # - name: Run a multi-line script
       #   run: |
       #     ls -al
       #     echo Add other actions to build,
       #     echo test, and deploy your project.
       #     snapcraft
+  #? Sets the release of this repository
   release:
-      needs: build
-      runs-on: ubuntu-latest
-      permissions:
-        # Required to release
-        contents: write
-      steps:
-        - name: Retrieve result from build
-          uses: actions/download-artifact@v3
-          id: results
-          with:
-            name: snap
-      # Runs a set of commands using the runners shell
-        - name: Run a multi-line script
-          run: |
-            ls -al
-        - name: GH Release
-          uses: softprops/action-gh-release@v0.1.15
-          with:
-            tag_name: v0.12
-            prerelease: true
+    env:
+      #? Set the release tag relative to the tag_name provided by dispatcher.yml
+      RELEASE_TAG: ${{ github.event.client_payload.tag_name }}
+      RELEASE_VERSION: ${{ github.event.client_payload.tag }}
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      #? Required to release
+      contents: write
+    steps:
+      - name: Retrieve result from build
+        uses: actions/download-artifact@v4
+        id: results
+        with:
+          # name: snap-${{ env.RELEASE_TAG }}-${{  }}
+          #* pattern match the names
+          pattern: snap-${{ env.RELEASE_VERSION }}-*
+          # merge-multiple: true
+      #? Runs a set of commands using the runners shell
+      - name: Run a multi-line script
+        run: |
+          ls -al
+      #? Set your release
+      - name: GH Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ env.RELEASE_TAG }}
+          #TODO: resolve setting a draft then detecting a draft
+          # draft: true
+          prerelease: true
           # token: ${{ secrets.GITRELEASE_TOKEN }}
-            files: ${{ steps.results.outputs.snap }}
-            
+          # files: ${{ steps.results.outputs.download-path }}
+          files: |
+            snap-${{ env.RELEASE_VERSION }}-*

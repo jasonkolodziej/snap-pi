@@ -1,0 +1,118 @@
+#? This is a basic workflow to help you get started with Actions
+name: CI-Dispatcher
+#? Controls when the workflow will run
+on:
+  schedule:
+    #?        ┌───────────── minute (0 - 59)
+    #?        │ ┌───────────── hour (0 - 23)
+    #?        │ │ ┌───────────── day of the month (1 - 31)
+    #?        │ │ │ ┌───────────── month (1 - 12 or JAN-DEC)
+    #?        │ │ │ │ ┌───────────── day of the week (0 - 6 or SUN-SAT)
+    #?        │ │ │ │ │
+    #?        │ │ │ │ │
+    #?        │ │ │ │ │
+    #?        * * * * *,-
+    - cron: "30 2 * * *"
+
+  workflow_dispatch:
+
+jobs:
+  check_remote_releases:
+    #? Reference: https://github.com/marketplace/actions/snapcraft-multiarch-build
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        platform: [arm64, amd64]
+    #? The type of runner that the job will run on
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+    env:
+      EVENT_TYPE: ${{ github.event_name }}
+    steps:
+      - name: Fetch Repository Release Information
+        #? https://docs.github.com/en/rest/releases/releases?apiVersion=2022-11-28#get-the-latest-release
+        id: latest-release
+        run: |
+          echo "release_info=$(gh api \
+          -H "Accept: application/vnd.github+json" \
+          -H "X-GitHub-Api-Version: 2022-11-28" \
+          /repos/${{env.OWNER}}/${{env.REPOSITORY}}/releases/latest)\n" >> $GITHUB_OUTPUT
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OWNER: owncloud
+          REPOSITORY: ocis
+
+      - name: Extract tag_name
+        id: extract-tag
+        run: |
+          echo "tag_name=${{ fromJson(steps.latest-release.outputs.release_info).tag_name }}" >> $GITHUB_OUTPUT
+          echo "tag=$(echo ${{ fromJson(steps.latest-release.outputs.release_info).tag_name }} | tr -d 'v')" >> $GITHUB_OUTPUT
+
+      #? Refrence: https://github.com/actions/cache/tree/main
+      #? A cache today is immutable and cannot be updated. But some use cases require the cache to be saved even though
+      #? there was a "hit" during restore.
+      #? To do so, use a key which is unique for every run and use restore-keys to restore the nearest cache. For example:
+      - uses: actions/cache@v4
+        #* Try and restore a cached version if possibe
+        id: cached
+        # continue-on-error: true
+        with:
+          path: ocis
+          key: ocis-${{ steps.extract-tag.outputs.tag }}-${{ runner.os }}-${{ matrix.platform }}-${{ hashFiles('ocis') }}
+          restore-keys: |
+            ocis-${{ steps.extract-tag.outputs.tag }}-${{ runner.os }}-${{ matrix.platform }}-
+
+      - name: Determine if new
+        id: is-new
+        run: echo "is_new=${{ steps.cached.outputs.cache-hit != 'true' }}" >> $GITHUB_OUTPUT
+
+      - name: Grab binary via Cache
+        #* Download the latest binary
+        id: grab
+        if: ${{ steps.is-new.outputs.is_new == 'true' }}
+        run: |
+          echo "latest cached binary doesn't exist, downloading..."
+          export OS_FAMILY=$(echo "${{ runner.os }}" | tr '[:upper:]' '[:lower:]')
+          curl --fail https://download.owncloud.com/ocis/ocis/stable/${{ steps.extract-tag.outputs.tag }}/ocis-${{steps.extract-tag.outputs.tag}}-${OS_FAMILY}-${{matrix.platform}} --output ocis
+
+      # #? Refrence: https://github.com/actions/cache/tree/main
+      # - uses: actions/cache/save@v4
+      #   #? https://github.com/actions/runner/blob/main/docs/adrs/0274-step-outcome-and-conclusion.md
+      #   # if: ${{ steps.is-new.outputs.is_new == 'true' && steps.grab.conclusion == 'success' }}
+      #   if: ${{ steps.is-new.outputs.is_new == 'true' && steps.grab.conclusion == 'success' }}
+      #   id: cache
+      #   with:
+      #     path: ocis
+      #     key: ocis-${{ steps.extract-tag.outputs.tag }}-${{ runner.os }}-${{ matrix.platform }}-${{ hashFiles('ocis') }}
+    outputs:
+      tag: ${{ steps.extract-tag.outputs.tag }}
+      tag_name: ${{ steps.extract-tag.outputs.tag_name }}
+      is_new: ${{ steps.is-new.outputs.is_new }}
+      user_invoked: ${{ env.EVENT_TYPE == 'workflow_dispatch' }}
+
+      # TODO: perhaps move to it's own job
+
+  dispatch:
+    needs: check_remote_releases
+    runs-on: "ubuntu-latest"
+    steps:
+      - name: Repository Dispatch
+        if: ${{ (needs.check_remote_releases.outputs.is_new == 'true' || needs.check_remote_releases.outputs.user_invoked == 'true') && needs.check_remote_releases.result == 'success' }}
+        #? https://github.com/marketplace/actions/repository-dispatch
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          #? It needs the following permissions on the target repositories:
+          #?    - contents: read & write
+          #?    - metadata: read only (automatically selected when selecting the contents permission)
+          token: ${{ secrets.PAT }}
+          # repository: username/my-repo
+          event-type: dispatch-released
+          client-payload: |-
+            {
+              "tag_name": "${{ needs.check_remote_releases.outputs.tag_name }}", 
+              "tag": "${{ needs.check_remote_releases.outputs.tag }}",
+              "is_new": ${{ needs.check_remote_releases.outputs.is_new }},
+              "cache_key": "ocis-${{ needs.check_remote_releases.outputs.tag }}-${{ runner.os }}",
+              "manual_dispatch": ${{ needs.check_remote_releases.outputs.user_invoked }}
+            }
