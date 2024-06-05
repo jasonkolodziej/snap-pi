@@ -52,7 +52,35 @@ Copy the output from above code-snippet (`jwt`-like token) and add this to the r
   - [Contents](https://docs.github.com/rest/overview/permissions-required-for-fine-grained-personal-access-tokens#repository-permissions-for-contents): `r+w`
     - **yields**: `mandatory`: Read access to metadata
 
-Set the following `Repository Variables`
+Set the following `Repository Variables`:
+> **Execute** in terminal for fast-link:
+```shell
+echo "${$(git config --get remote.origin.url)//'.git'/}/settings/variables/actions/new"
+```
+- **Name**: `${{ vars.* }}` current repo variable name
+  - **Value**: description of value for said variable name
+
+- `GH_REMOTE_OWNER_ORG`
+  - the owner or organization the remote repo you'd like to watch
+- `GH_REMOTE_REPOSITORY`
+  - the name of the remote repo you'd like to watch
+<!-- TODO: add this example and fix workflow -->
+- `USE_GH_RELEASE`, **default** = `false`
+  - informs the dispatcher and cacher steps to use `github's` assets/release files instead of another defined source.
+
+Example
+```shell
+https://github.com/jasonkolodziej/template-snap.git
+
+GH_REMOTE_OWNER_ORG=jasonkolodziej
+GH_REMOTE_REPOSITORY=template-snap
+
+#? the following URL is templated as
+"https://github.com/${GH_REMOTE_OWNER_ORG}/${GH_REMOTE_REPOSITORY}.git"
+```
+
+- 
+
 ```yaml
 # <github actions manifest ...>
           OWNER: ${{ vars.GH_REMOTE_OWNER_ORG }}
