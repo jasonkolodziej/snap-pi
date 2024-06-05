@@ -1,0 +1,28 @@
+#!/bin/sh -e
+#? Reference: https://snapcraft.io/docs/adding-snap-configuration#heading--interpreting
+
+#? The configure hook is called every time one the following actions happen:
+#?  - initial snap installation
+#?  - snap refresh
+#?  - whenever the user runs snap set|unset to change a configuration option
+#? The hook should use snapctl get to retrieve configuration values from snapd.
+#? If the hook exits with a non-zero status code, the configuration will not be applied.
+#? The configure hook located within the mysnap snap at meta/hooks/configure would be called to
+#? apply the configuration changes, if necessary.
+
+#* an example of this is:
+# username="$(snapctl get username)"
+# password="$(snapctl get password)"
+
+# if [ -z "$username" -o -z "$password" ]; then
+#     echo "Username and password are required."
+#     exit 1
+# fi
+
+# mkdir -m 0600 $SNAP_DATA/options
+# echo "username: $username" > $SNAP_DATA/options/credentials
+# echo "password: $password" >> $SNAP_DATA/options/credentials
+
+# TODO: fill out extra configuration hook parameters
+
+exec $@

@@ -86,10 +86,14 @@ jobs:
       #     path: ocis
       #     key: ${{ runner.os }}-ocis-${{ hashFiles('ocis') }}
       - name: Status
+        id: status
         run: |
           echo "manual_dispatch:${{ env.MANUAL_EVENT }} event:${{ env.EVENT_TYPE }} is_new:${{ env.IS_NEW }} version:${{ env.RELEASE_VERSION }}"
+          echo "Files at ===> main.workflow.job['build'].steps['status']"
           ls -al
-          cp ./ocis ./src/ocis/bin
+          echo "Moving cached binary to their src folder"
+          # cp ./ocis ./src/ocis/bin
+          mv ./ocis ./src/ocis/bin
 
       # - name: Grab binary
       #   id: grab
@@ -123,6 +127,7 @@ jobs:
         id: snapcraft
         with:
           architecture: ${{ matrix.platform }}
+          snapcraft-args: clean
 
       - uses: actions/upload-artifact@v4
         id: uploadSnapArtifact

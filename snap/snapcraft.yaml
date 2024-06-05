@@ -8,7 +8,7 @@ name: goplay2 # you probably want to 'snapcraft register <name>'
 ## with a minimal set of libraries that are common to most applications.
 ## They’re transparent to users, but they need to be considered, and specified, when building a snap.
 base: core22 # the base snap is the execution environment for this snap
-version: '0.1' # just for humans, typically '1.2+git' or '1.3.2'
+version: "0.1" # just for humans, typically '1.2+git' or '1.3.2'
 summary: Send audio to device running this snap using AirPlay 2 # 79 char long summary
 description: |
   AirConnect can run on any machine that has access to your local network
@@ -26,7 +26,7 @@ license: MIT
 ## ref: https://snapcraft.io/docs/architectures
 architectures:
   #- build-on: arm64
-#    build-for:
+  #    build-for:
   - build-on: amd64
     build-for: arm64
 
@@ -48,11 +48,19 @@ grade: devel # must be 'stable' to release into candidate/stable channels
 ## Parts define what sources are needed to assemble your app.
 ## Parts can be anything: programs, libraries, or other needed assets.
 parts:
+  hooks:
+    plugin: dump
+    source: src/hooks/
+    #? In the key/value pair, the key represents the path of a file inside the part and
+    #? the value represents how the file is going to be staged.
+    organize:
+      bin/: snap/hooks/
+
   ## The parts arbitrary name
   goplay2:
-  ## The plugin field=(dump) determines how the information in specified in the source field
-  ## and includes the source's contents in the snap.
-  ## The source can be a local or remote zip file, deb file, or tarball.
+    ## The plugin field=(dump) determines how the information in specified in the source field
+    ## and includes the source's contents in the snap.
+    ## The source can be a local or remote zip file, deb file, or tarball.
     plugin: go
     ## (list of strings) Features used to build optional dependencies
     build-snaps:

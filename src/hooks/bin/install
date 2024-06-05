@@ -1,0 +1,11 @@
+#!/bin/sh -e
+#? Reference: https://snapcraft.io/docs/supported-snap-hooks#heading--install
+
+#? The install hook is called upon initial install only, i.e. it’s not called on subsequent refreshes.
+#? The hook is executed before starting snap services (if it has any) and before the configure hook.
+#? The install hook is the place for one-time actions, such as an early initialization of a resource
+#? when installed for the first time.
+
+# TODO: fill out extra configuration hook parameters
+
+exec $@

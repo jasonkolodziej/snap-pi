@@ -1,0 +1,15 @@
+{
+  "folders": [
+    {
+      "path": "."
+    }
+  ],
+  "settings": {},
+  "extensions": {
+    "recommendations": [
+      "shd101wyy.markdown-preview-enhanced",
+      "github.copilot",
+      "redhat.vscode-yaml"
+    ]
+  }
+}

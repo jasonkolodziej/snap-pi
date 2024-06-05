@@ -40,8 +40,8 @@ jobs:
           /repos/${{env.OWNER}}/${{env.REPOSITORY}}/releases/latest)\n" >> $GITHUB_OUTPUT
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          OWNER: owncloud
-          REPOSITORY: ocis
+          OWNER: ${{ vars.GH_REMOTE_OWNER_ORG }}
+          REPOSITORY: ${{ vars.GH_REMOTE_REPOSITORY }}
 
       - name: Extract tag_name
         id: extract-tag
@@ -71,6 +71,9 @@ jobs:
         #* Download the latest binary
         id: grab
         if: ${{ steps.is-new.outputs.is_new == 'true' }}
+        env:
+          #? Should we download the binary from the remote repository or use a different source?
+          USE_GH_RELEASE: ${{ vars.USE_REMOTE_GH_RELEASE_FILES }}
         run: |
           echo "latest cached binary doesn't exist, downloading..."
           export OS_FAMILY=$(echo "${{ runner.os }}" | tr '[:upper:]' '[:lower:]')
