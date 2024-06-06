@@ -34,8 +34,8 @@ jobs:
       EVENT_TYPE: ${{ github.event_name }}
       MANUAL_EVENT: ${{ github.event.client_payload.manual_dispatch }}
       CACHED_KEY: ${{ github.event.client_payload.cache_key }}
-      # BUILD_PLATFORM: ${{ github.event.client_payload.build_platform }}
-      # BUILD_OS: ${{github.event.client_payload.build_os }}
+      # # BUILD_PLATFORM: ${{ github.event.client_payload.build_platform }}
+      # # BUILD_OS: ${{github.event.client_payload.build_os }}
 
     #? Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -43,20 +43,21 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      # - name: Pull and save docker image as tarball
+      # - name: Check action context
+      #   if: ${{ env.RELEASE_VERSION == '' && env.MANUAL_EVENT != 'repository_dispatch' }}
+      #   id: check-action-context
       #   run: |
-      #     docker pull owncloud/ocis:5.0.5
-      #     CONT_ID=$(docker create owncloud/ocis:5.0.5)
-
-      #     docker export ${CONT_ID} -o ocis-5_0_5.tar.gz
-      #     # docker save -o ocis-5_0_5.tar owncloud/ocis:5.0.5
-      #     tar tvf ./ocis-5_0_5.tar.gz
-
-      # - uses: actions/download-artifact@v4
-      #   id: cached
-      #   with:
-      #     name: latest-cached-bin
-      #   continue-on-error: true
+      #     echo "MANUAL_EVENT='true'" >> $GITHUB_ENV
+      #     echo "IS_NEW='false'" >> $GITHUB_ENV
+      #     echo "${{github.repository}}"
+      #     echo "RELEASE_VERSION=$(gh api \
+      #     -H "Accept: application/vnd.github+json" \
+      #     -H "X-GitHub-Api-Version: 2022-11-28" \
+      #     /repos/${{github.repository}}/releases/latest)\n" >> $GITHUB_ENV
+      #     echo "RELEASE_VERSION=$(echo ${{ fromJson(env.RELEASE_VERSION) }} | tr -d 'v')" >> $GITHUB_ENV
+      #     echo "manual_dispatch:${{ env.MANUAL_EVENT }} event:${{ env.EVENT_TYPE }} is_new:${{ env.IS_NEW }} version:${{ env.RELEASE_VERSION }}"
+      #     echo "Files at ===> main.workflow.job['build'].steps['Check action context']"
+      #     ls -al
 
       - uses: actions/cache@v4
         #* Try and restore a cached version if possibe
@@ -88,38 +89,18 @@ jobs:
       - name: Status
         id: status
         run: |
-          echo "manual_dispatch:${{ env.MANUAL_EVENT }} event:${{ env.EVENT_TYPE }} is_new:${{ env.IS_NEW }} version:${{ env.RELEASE_VERSION }}"
+          ## echo "manual_dispatch:${{ env.MANUAL_EVENT }} event:${{ env.EVENT_TYPE }} is_new:${{ env.IS_NEW }} version:${{ env.RELEASE_VERSION }}"
           echo "Files at ===> main.workflow.job['build'].steps['status']"
           ls -al
           echo "Moving cached binary to their src folder"
-          # cp ./ocis ./src/ocis/bin
-          mv ./ocis ./src/ocis/bin
+          cp -p ./ocis ./src/ocis/bin/ocis
+          if [ -x "./src/ocis/bin/ocis" ]; then
+            echo "File is executable"
+          else
+            echo "File is being made executable"
+            chmod +x ./src/ocis/bin/ocis
+          fi
 
-      # - name: Grab binary
-      #   id: grab
-      #   if: ${{ steps.cached.outcome == 'failure' }}
-      #   run: |
-      #     # echo ${{ steps.cached.outcome }} ${{ steps.cached.conclusion }}
-      #     echo "latest cached binary doesn't exist, downloading..."
-      #     curl --fail https://download.owncloud.com/ocis/ocis/stable/5.0.5/ocis-5.0.5-linux-${{matrix.platform}} --output ocis
-      #     # set file to be executable
-      #     chmod +x ./ocis
-
-      # - name: Uploading artifact
-      #   id: cache
-      #   if: ${{ steps.grab.conclusion == 'success' }}
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: latest-cached-bin
-      #     path: ./ocis
-
-      # # Use Samuel's action to get snapcraft
-      # - name: Install Snapcraft
-      #   uses: samuelmeuli/action-snapcraft@v2
-      #   # inform snap/snapcraft that you want to build using lxd (18.04) is
-      #   # NOT set like this
-      #   with:
-      #     use_lxd: ${{ matrix.os == 'ubuntu-18.04' }}
       - uses: docker/setup-qemu-action@v1
       #? https://github.com/marketplace/actions/snapcraft-multiarch-build#action-inputs
       - uses: diddlesnaps/snapcraft-multiarch-action@v1
@@ -127,8 +108,16 @@ jobs:
         id: snapcraft
         with:
           architecture: ${{ matrix.platform }}
+          # --verbosity={quiet,brief,verbose}
+          #? Full execution log: '/root/.local/state/snapcraft/log/snapcraft-20240606-082202.271748.log'
+          # snapcraft-args:
           # snapcraft-args: clean
-
+      - uses: actions/upload-artifact@v4
+        id: uploadErrArtifact
+        if: ${{ steps.snapcraft.conclusion != 'success'}}
+        with:
+          name: snap-${{ env.RELEASE_VERSION }}-log
+          path: /root/.local/state/snapcraft/log/snapcraft-*.log
       - uses: actions/upload-artifact@v4
         id: uploadSnapArtifact
         with:
@@ -160,20 +149,20 @@ jobs:
           # name: snap-${{ env.RELEASE_TAG }}-${{  }}
           #* pattern match the names
           pattern: snap-${{ env.RELEASE_VERSION }}-*
-          # merge-multiple: true
+          merge-multiple: true
       #? Runs a set of commands using the runners shell
       - name: Run a multi-line script
         run: |
           ls -al
+          echo ${{ steps.results.outputs.download-path }}
       #? Set your release
       - name: GH Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2.0.5
         with:
           tag_name: ${{ env.RELEASE_TAG }}
           #TODO: resolve setting a draft then detecting a draft
-          # draft: true
+          draft: true
           prerelease: true
-          # token: ${{ secrets.GITRELEASE_TOKEN }}
-          # files: ${{ steps.results.outputs.download-path }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           files: |
-            snap-${{ env.RELEASE_VERSION }}-*
+            ${{ steps.results.outputs.download-path }}/*.snap
