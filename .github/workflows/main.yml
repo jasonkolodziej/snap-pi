@@ -106,7 +106,6 @@ jobs:
       - uses: diddlesnaps/snapcraft-multiarch-action@v1
         # if: ${{ steps.restore-cached.outputs.cache-hit == 'true' }}
         id: snapcraft
-        continue-on-error: true
         with:
           architecture: ${{ matrix.platform }}
           # --verbosity={quiet,brief,verbose}
