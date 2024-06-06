@@ -1,120 +1,211 @@
-# GLOBAL METADATA
-## Reference: https://snapcraft.io/docs/snapcraft-yaml-reference
-## The name must be unique in the Snap Store.
-## Valid snap names consist of lower-case alphanumeric characters and hyphens.
-## They cannot be all numbers and they also cannot start or end with a hyphen.
-name: goplay2 # you probably want to 'snapcraft register <name>'
-## The <base> keyword defines a special kind of snap that provides a run-time environment
-## with a minimal set of libraries that are common to most applications.
-## They’re transparent to users, but they need to be considered, and specified, when building a snap.
-base: core22 # the base snap is the execution environment for this snap
-version: "0.1" # just for humans, typically '1.2+git' or '1.3.2'
-summary: Send audio to device running this snap using AirPlay 2 # 79 char long summary
+#?  MAIN REFERENCE: https://snapcraft.io/docs/snapcraft-yaml-reference
+#?  <snap>/meta/snap.yaml Reference: https://snapcraft.io/docs/the-snap-format#heading--autostart
+#? The suggested snap name, constrained to the [a-z0-9] charset and inner
+#? dashes. The final name when the snap is installed is defined by the
+#? snap-declaration assertion associated with the snap, if any.
+name: template-snap
+
+#? An optional title for the snap, may contain uppercase letters and spaces.
+title: A Snap Template
+
+#? Version of the software packed inside the snap. Has no semantic value
+#? in the system (no greater/lower-than rules are ever applied to it).
+version: "2"
+
+#? More details about what is contained in the snap.
+summary: A brief description of the snap
 description: |
-  AirConnect can run on any machine that has access to your local network
-  (Windows, MacOS x86 and arm64, Linux x86, x86_64, arm, aarch64, sparc,
-  mips, powerpc, Solaris and FreeBSD). It does not need to be on your main computer.
-  (For example, a Raspberry Pi works well). It will detect UPnP/Sonos/Chromecast
-  players, create as many virtual AirPlay devices as needed, and act as a bridge/proxy
-  between AirPlay clients (iPhone, iPad, iTunes, MacOS, AirFoil ...)
-  and the real UPnP/Sonos/Chromecast players.
-# icon: <icon path?>
-license: MIT
+  <text>
 
-# ARCHITECTURES
-## builds a snap to run on the same architecture as the build environment.
-## ref: https://snapcraft.io/docs/architectures
-architectures:
-  #- build-on: arm64
-  #    build-for:
-  - build-on: amd64
-    build-for: arm64
+#? License for the snap content, based on SPDX license expressions.
+license: <expression>
 
-# SECURITY MODEL
-## Because devmode is only intended for development,
-## snaps must be set to strict confinement before they can be published as “stable” in the Snap Store.
-## Once an app is working well in devmode, you can review confinement violations,
-## add appropriate interfaces, and switch to strict confinement.
-confinement: devmode # use 'strict' once you have the right plugs and slots
-## Defines the quality grade of the snap.
-## Can be either devel (i.e. a development version of the snap,
-## so not to be published to the stable or candidate channels) or
-## stable (i.e. a stable release or release candidate, which can be released to all channels).
-## A snap of type app (default) cannot be set to stable if the base is not on a stable channel.
-grade: devel # must be 'stable' to release into candidate/stable channels
+#? Type of snap, defaults to "app". The `core` type has been deprecated.
+type: app
 
-# PARTS
-## are the raw building blocks of a snap, used to collect and build binaries and their dependencies.
-## Parts define what sources are needed to assemble your app.
-## Parts can be anything: programs, libraries, or other needed assets.
+#? List of architectures the snap may run on. Defaults to [all].
+#? architectures:
+#?     - all | amd64 | i386 | armhf | ...
+
+#? The base snap that defines the underlying filesystem this snap
+#? will be assembled on top of.
+base: <name>
+
+#? A list of features that must be supported by the core for
+#? the snap to install. For example, the following sets a requirement for
+#? snapd2.38 or later:
+#? assumes:
+#? - snapd2.38
+assumes:
+  - <feature>
+
+#? The epoch this release is intended for. For further details, see:
+#? https://forum.snapcraft.io/t/snap-epochs/10316
+#? (snapd 2.38+)
+epoch: <value>
+#? Additional usernames the snap may use. Currently, the only supported
+#? values for <name> is '_daemon_' (snapd 2.61+), and the now deprecated
+#? 'snap-daemon'. For further details, see:
+#? https://forum.snapcraft.io/t/system-usernames/13386
+
+#? system-usernames:
+#?   <name>: shared
+
+#?  Alternative form:
+#? system-usernames:
+#?   <name>:
+#?     scope: shared
+
+environment:
+  #? The environment directive allows you to set environment variables
+  #? for the entire snap.
+  <key>: <value>
+  <key>: <value>
+
+plugs:
+  #? The plugs directive allows you to specify the interfaces the snap
+  #? requires to run.
+  - <plug>
+
+slots:
+  #? The slots directive allows you to specify the interfaces the snap
+  #? provides to other snaps.
+  - <slot>
+  - <slot>
+
 parts:
-  hooks:
-    plugin: dump
-    source: src/hooks/
-    #? In the key/value pair, the key represents the path of a file inside the part and
-    #? the value represents how the file is going to be staged.
-    organize:
-      bin/: snap/hooks/
+  <part-name>:
+    #? The plugin to use to build the part. The plugin is responsible for
+    #? downloading, configuring, building, and installing the part.
+    plugin: <plugin>
 
-  ## The parts arbitrary name
-  goplay2:
-    ## The plugin field=(dump) determines how the information in specified in the source field
-    ## and includes the source's contents in the snap.
-    ## The source can be a local or remote zip file, deb file, or tarball.
-    plugin: go
-    ## (list of strings) Features used to build optional dependencies
-    build-snaps:
-      - go
-    source-type: git
-    source: https://github.com/openairplay/goplay2.git
-    ## Before building the part, the packages listed in the build-packages section
-    ## need to be installed in the build environment.
-    ## These are the tools and libraries that are used during the build process.
+    #? The source for the part. This can be a URL, a local directory, or a
+    #? tarball. The source is used by the plugin to build the part.
+    source: <source>
+
+    #? The build-packages to install before building the part.
     build-packages:
-      - pulseaudio
-      - libfdk-aac-dev
-    stage-packages:
-      - pulseaudio
-      - libfdk-aac-dev
-    ## These are packages containing libraries are resources that the final snap needs to run.
-    ## They are very similar to those that would be listed as run-time
-    ## dependencies on a standard distribution package.
-    #stage-packages:
-    ## You can override and customise steps of a part’s lifecycle (pull, build, stage, and prime) using overrides;
-    ## ref: https://snapcraft.io/docs/overrides
-    # override-<step name>: |
-    #   <multi-line>
-    #   <shell script>
+      - <package>
+      - <package>
 
-# APPS
-## ref: https://snapcraft.io/docs/snapcraft-app-and-service-metadata
+    #? The stage-packages to include in the snap.
+    stage-packages:
+      - <package>
+      - <package>
+
+    #? The organize directive allows you to move files around in the snap.
+    organize:
+      <source>: <destination>
+      <source>: <destination>
+
+    #? The build-environment to set environment variables for the build.
+    build-environment:
+      <key>: <value>
+      <key>: <value>
+
+    #? The build-snaps to include in the snap.
+    build-snaps:
+      - <snap>
+      - <snap>
+
+    #? The after directive allows you to specify the order in which parts
+    #? are built.
+    after:
+      - <part-name>
+      - <part-name>
+
+    #? The override-build directive allows you to override the build step
+    #? of the plugin.
+    override-build: |
+      <commands>
+
+    #? The override-pull directive allows you to override the pull step
+    #? of the plugin.
+    override-pull: |
+      <commands>
+
+    #? The override-stage directive allows you to override the stage step
+    #? of the plugin.
+    override-stage: |
+      <commands>
+
+    #? The override-prime directive allows you to override the prime step
+    #? of the plugin.
+    override-prime: |
+      <commands>
+
 apps:
-  ## ref: https://snapcraft.io/docs/services-and-daemons
-  # some-daemon:
-  #   command: bin/os-release.sh
-  #   daemon: simple
-  goplay2:
-    # adapter: full
-    # WORKAROUND: Snapcraft impose too much restrictions to the command format
-    # https://bugs.launchpad.net/snapcraft/+bug/1820055
-    command: /bin/goplay2
-    # daemon: simple
-    environment:
-      # (ms) is subtracted from the local "clock"
-      # Ex: It takes around 60ms on my mac to launch the audio stream at the Anchor Time (DEFAULT=0)
-      # - GOPLAY_DELAY=0
-      # (interface) used to listen (DEFAULT: 'eth0')
-      # - GOPLAY_INTERFACE="wlan0"
-      # (name) used as accessory name (Bonjour)
-      # - GOPLAY_NAME="TestPlay"
-      # (pulse audio sink name) to replace default sink
-      # - GOPLAY_SINK
-      # Fix ALSA
-      GOPLAY2_CONFIG_PATH: /$SNAP_USER_DATA/.config
+  <app-name>:
+    #?  The command to run when the snap is executed.
+    command: <command>
+
+    #?  The daemon directive allows you to specify that the app is a daemon.
+    daemon: simple
+
+    #?  The plugs directive allows you to specify the interfaces the app
+    #?  requires to run.
     plugs:
-      ## Audio access
-      - audio-playback
-      - pulseaudio
-      ## Network Access
-      - ptp
-      - network-bind
+      - <plug>
+      - <plug>
+
+    #? The environment directive allows you to set environment variables
+    #? for the app.
+    environment:
+      <key>: <value>
+      <key>: <value>
+
+    #? The restart-condition directive allows you to specify the conditions
+    #? under which the app should be restarted.
+    restart-condition: <condition>
+
+    #? The stop-command directive allows you to specify the command to run
+    #? when the app is stopped.
+    stop-command: <command>
+
+    #? The stop-timeout directive allows you to specify the time to wait
+    #? for the app to stop before killing it.
+    stop-timeout: <timeout>
+
+    #? The working-directory directive allows you to specify the working
+    #? directory for the app.
+    working-directory: <directory>
+
+    #? The autostart directive allows you to specify that the app should
+    #? be started automatically when the system boots.
+    autostart: <condition>
+
+    #? The common-id directive allows you to specify a common ID for the app.
+    common-id: <id>
+
+    #? The desktop directive allows you to specify that the app is a desktop
+    #? application.
+    desktop: <condition>
+
+    #? The desktop-file directive allows you to specify the path to the
+    #? desktop file for the app.
+    desktop-file: <path>
+
+    #? The extensions directive allows you to specify the extensions the app
+    #? supports.
+    extensions:
+      - <extension>
+      - <extension>
+
+    #? The passthrough directive allows you to specify that the app should
+    #? pass through the command line arguments.
+    passthrough: <condition>
+
+    #? The plugs directive allows you to specify the interfaces the app
+    #? requires to run.
+    #?  Reference: https://snapcraft.io/docs/supported-interfaces
+    plugs:
+      - <plug>
+      - <plug>
+
+    #? The slots directive allows you to specify the interfaces the app
+    #? provides to other snaps.
+    slots:
+      - <slot>
+      - <slot>
+    
+  
