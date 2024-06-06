@@ -106,6 +106,7 @@ jobs:
       - uses: diddlesnaps/snapcraft-multiarch-action@v1
         # if: ${{ steps.restore-cached.outputs.cache-hit == 'true' }}
         id: snapcraft
+        continue-on-error: true
         with:
           architecture: ${{ matrix.platform }}
           # --verbosity={quiet,brief,verbose}
@@ -114,7 +115,7 @@ jobs:
           # snapcraft-args: clean
       - uses: actions/upload-artifact@v4
         id: uploadErrArtifact
-        if: ${{ steps.snapcraft.conclusion != 'success'}}
+        if: ${{ steps.snapcraft.outcome != 'success'}}
         with:
           name: snap-${{ env.RELEASE_VERSION }}-log
           path: /root/.local/state/snapcraft/log/snapcraft-*.log
