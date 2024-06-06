@@ -69,15 +69,6 @@ jobs:
           fail-on-cache-miss: true
           restore-keys: ocis-${{ env.RELEASE_VERSION }}-${{ runner.os }}-${{ matrix.platform }}-
 
-      # - name: Grab binary via Cache
-      #   id: grab
-      #   if: ${{ steps.cached.outputs.cache-hit != 'true' }}
-      #   run: |
-      #     echo "latest cached binary doesn't exist, downloading..."
-      #     curl --fail https://download.owncloud.com/ocis/ocis/stable/${{env.RELEASE_TAG}}/ocis-${{env.RELEASE_TAG}}-linux-${{matrix.platform}} --output ocis
-      #     # set file to be executable
-      #     # chmod +x ./ocis
-
       # #? Refrence: https://github.com/actions/cache/tree/main
       # - uses: actions/cache/save@v4
       #   #? https://github.com/actions/runner/blob/main/docs/adrs/0274-step-outcome-and-conclusion.md
@@ -86,6 +77,7 @@ jobs:
       #   with:
       #     path: ocis
       #     key: ${{ runner.os }}-ocis-${{ hashFiles('ocis') }}
+
       - name: Status
         id: status
         run: |
@@ -101,29 +93,21 @@ jobs:
             chmod +x ./src/ocis/bin/ocis
           fi
 
-      - uses: docker/setup-qemu-action@v1
-      #? https://github.com/marketplace/actions/snapcraft-multiarch-build#action-inputs
       - uses: diddlesnaps/snapcraft-multiarch-action@v1
         # if: ${{ steps.restore-cached.outputs.cache-hit == 'true' }}
         id: snapcraft
         with:
+          store-auth: ${{ secrets.SNAPCRAFT_TOKEN }}
           architecture: ${{ matrix.platform }}
-          # --verbosity={quiet,brief,verbose}
           #? Full execution log: '/root/.local/state/snapcraft/log/snapcraft-20240606-082202.271748.log'
-          # snapcraft-args:
-          # snapcraft-args: clean
+          # snapcraft-args: #? --verbosity={quiet,brief,verbose}
+
       - uses: actions/upload-artifact@v4
         id: uploadSnapArtifact
         with:
           name: snap-${{ env.RELEASE_VERSION }}-${{ matrix.platform }}
           path: ${{ steps.snapcraft.outputs.snap }}
-      #? Runs a set of commands using the runners shell
-      # - name: Run a multi-line script
-      #   run: |
-      #     ls -al
-      #     echo Add other actions to build,
-      #     echo test, and deploy your project.
-      #     snapcraft
+
   #? Sets the release of this repository
   release:
     env:
